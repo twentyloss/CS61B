@@ -1,5 +1,6 @@
 package randomizedtest;
 
+import java.lang.Math;
 /** Array based list.
  *  @author Josh Hug
  */
@@ -14,6 +15,7 @@ package randomizedtest;
  size: The number of items in the list should be size.
 */
 
+
 public class BuggyAList<Item> {
     private Item[] items;
     private int size;
@@ -27,7 +29,8 @@ public class BuggyAList<Item> {
     /** Resizes the underlying array to the target capacity. */
     private void resize(int capacity) {
         Item[] a = (Item[]) new Object[capacity];
-        for (int i = 0; i < size; i += 1) {
+
+        for (int i = 0; i < Math.min(size, capacity); i += 1) {
             a[i] = items[i];
         }
         items = a;
