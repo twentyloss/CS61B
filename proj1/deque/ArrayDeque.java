@@ -47,7 +47,7 @@ public class ArrayDeque<T> {
             return null;
         }
         if (size * 4 <= items.length){
-            resizing(0.25);
+            resizing(items.length / 4);
         }
         nextLast = getNewIndex(nextLast, -1);
         size -= 1;
