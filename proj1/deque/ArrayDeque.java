@@ -88,6 +88,7 @@ public class ArrayDeque<T> {
         else{
             System.arraycopy(items, firstIndex, a, 0, size);
         }
+        items = a;
         nextFirst = getNewIndex(0, -1);
         nextLast = size;
 
@@ -98,7 +99,7 @@ public class ArrayDeque<T> {
             return index + offset - items.length;
         }
         else if(index + offset < 0){
-            return items.length - (index + offset);
+            return items.length + (index + offset);
         }
         else{
             return index + offset;
