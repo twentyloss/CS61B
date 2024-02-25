@@ -90,7 +90,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             int size1 = items.length - firstIndex;
             System.arraycopy(items, firstIndex, a, 0, size1);
             System.arraycopy(items, 0, a, size1, size - size1);
-        }else {
+        } else {
             System.arraycopy(items, firstIndex, a, 0, size);
         }
         items = a;
@@ -102,9 +102,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private int getNewIndex(int index, int offset) {
         if (index + offset >= items.length) {
             return index + offset - items.length;
-        }else if (index + offset < 0) {
+        } else if (index + offset < 0) {
             return items.length + (index + offset);
-        }else {
+        } else {
             return index + offset;
         }
     }
