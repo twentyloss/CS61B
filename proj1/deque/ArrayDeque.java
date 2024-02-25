@@ -146,7 +146,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
                 return false;
             }
             for (int i = 0; i < size; i++) {
-                if (this.get(i).equals(other.get(i))) {
+                if (!this.get(i).equals(other.get(i))) {
                     return false;
                 }
             }
@@ -154,6 +154,18 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         }
 
         return false;
+    }
+
+    public static void main(String[] args){
+        ArrayDeque<Integer> a = new ArrayDeque<>();
+        LinkedListDeque<Integer> l =new LinkedListDeque<>();
+        a.addLast(1);
+        a.addLast(2);
+        a.addLast(3);
+        l.addLast(1);
+        l.addLast(2);
+        l.addLast(3);
+        System.out.println(a.equals(l));
     }
 
 }
