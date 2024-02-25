@@ -15,10 +15,10 @@ public class TestArrayDequeEC {
 
         int N = 5000;
         ArrayDequeSolution<String> failureSeq = new ArrayDequeSolution<>();
+        Integer expect = 0, actual = 0;
         for(int i = 0; i < N; i++){
            int r = StdRandom.uniform(0, 5);
            int num = StdRandom.uniform(0, 1000);
-           Integer expect = 0, actual = 0;
             switch (r){
                case 0:
                    failureSeq.addLast("addFirst(" + num + ")");
@@ -31,18 +31,18 @@ public class TestArrayDequeEC {
                    solution.addLast(num);
                    break;
                 case 2:
-                   failureSeq.addLast("removeLast()");
                    if (solution.size() == 0 || student.size() == 0){
                        break;
                    }
+                   failureSeq.addLast("removeFirst()");
                    actual = student.removeFirst();
                    expect = solution.removeFirst();
                    break;
                 case 3:
-                    failureSeq.addLast("removeLast()");
                     if (solution.size() == 0 || student.size() == 0){
                         break;
                     }
+                    failureSeq.addLast("removeLast()");
                     actual = student.removeLast();
                     expect = solution.removeLast();
                     break;
