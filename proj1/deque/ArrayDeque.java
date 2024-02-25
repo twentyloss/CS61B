@@ -1,6 +1,8 @@
 package deque;
 
-public class ArrayDeque<T> {
+import java.util.Iterator;
+
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private T[] items;
     private int size;
     private int nextFirst;
@@ -12,6 +14,8 @@ public class ArrayDeque<T> {
         nextFirst = 0;
         nextLast = 1;
     }
+
+    @Override
     public void addFirst(T item){
         if(size == items.length){
             resizing(size * 2);
@@ -21,6 +25,7 @@ public class ArrayDeque<T> {
         size += 1;
     }
 
+    @Override
     public void addLast(T item){
         if(size == items.length){
             resizing(size * 2);
@@ -30,6 +35,7 @@ public class ArrayDeque<T> {
         size += 1;
     }
 
+    @Override
     public T removeFirst(){
         if (size == 0){
             return null;
@@ -42,6 +48,7 @@ public class ArrayDeque<T> {
         return items[nextFirst];
     }
 
+    @Override
     public T removeLast(){
         if (size == 0){
             return null;
@@ -54,22 +61,21 @@ public class ArrayDeque<T> {
         return items[nextLast];
     }
 
-    public boolean isEmpty(){
-        return size == 0;
-    }
-
+    @Override
     public int size(){
         return size;
     }
 
+    @Override
     public void printDeque(){
         for(int i = 0; i < size ; i++){
             int index = getNewIndex(nextFirst, 1 + i);
-            System.out.println(items[index] + " ");
+            System.out.print(items[index] + " ");
         }
             System.out.println();
     }
 
+    @Override
     public T get(int index){
         if (index >= size){
             return null;
@@ -104,6 +110,69 @@ public class ArrayDeque<T> {
         else{
             return index + offset;
         }
+    }
+
+    public Iterator<T> iterator(){
+        return new ArrayDequeIterator();
+    }
+
+    private class ArrayDequeIterator implements Iterator<T>{
+        private int nextPos;
+
+        public ArrayDequeIterator(){
+            nextPos = 0;
+        }
+
+        @Override
+        public boolean hasNext(){
+            return nextPos < size;
+        }
+
+        @Override
+        public T next(){
+            if (hasNext()){
+                T next = get(nextPos);
+                nextPos += 1;
+                return next;
+            }
+            return null;
+        }
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if (o instanceof Deque d){
+            if (d.size() != this.size()){
+                return false;
+            }
+            for(int i = 0; i < size; i++){
+                if(this.get(i) != d.get(i)){
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public static void main(String[] args){
+        ArrayDeque<Integer> a = new ArrayDeque<>();
+        a.addFirst(1);
+        a.addFirst(2);
+        a.addLast(3);
+        Iterator<Integer> iter = a.iterator();
+        ArrayDeque<Integer> b = new ArrayDeque<>();
+        b.addFirst(1);
+        b.addLast(2);
+        b.addLast(3);
+        System.out.println(iter.hasNext());
+        System.out.println(iter.next());
+        System.out.println(iter.next());
+        System.out.println(iter.next());
+        System.out.println(iter.next());
+        a.printDeque();
+        b.printDeque();
+        System.out.println(a.equals(b));
     }
 }
 
