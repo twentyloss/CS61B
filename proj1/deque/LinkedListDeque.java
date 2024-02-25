@@ -3,17 +3,17 @@ package deque;
 import java.util.Iterator;
 
 public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
-    private class DeNode{
-        public T item;
-        public DeNode prev;
-        public DeNode next;
+    private class DeNode {
+        private T item;
+        private DeNode prev;
+        private DeNode next;
 
-        public DeNode(T value) {
+        DeNode(T value) {
             item = value;
             prev = null;
             next = null;
         }
-        public DeNode(T value, DeNode p,DeNode n) {
+        DeNode(T value, DeNode p,DeNode n) {
             item = value;
             prev = p;
             next = n;
@@ -36,23 +36,15 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         size = 0;
     }
 
-    public LinkedListDeque(T value) {
-        Sentinel = new DeNode(null);
-        Sentinel.next = new DeNode(value);
-        Sentinel.prev = Sentinel.next;
-        Sentinel.next.prev = Sentinel;
-        size = 1;
-    }
-
     @Override
-    public void addFirst(T item){
-        DeNode first =  new DeNode(item,Sentinel ,Sentinel.next);
+    public void addFirst(T item) {
+        DeNode first =  new DeNode(item, Sentinel, Sentinel.next);
         size += 1;
     }
 
     @Override
-    public void addLast(T item){
-        DeNode last = new DeNode(item,Sentinel.prev, Sentinel);
+    public void addLast(T item) {
+        DeNode last = new DeNode(item, Sentinel.prev, Sentinel);
         size += 1;
     }
 
@@ -69,7 +61,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     }
 
     @Override
-    public T removeLast(){
+    public T removeLast() {
         if (size == 0) {
             return null;
         }
@@ -86,13 +78,12 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     }
 
     @Override
-    public void printDeque(){
+    public void printDeque() {
         DeNode curr = Sentinel.next;
-        while(curr != Sentinel){
+        while (curr != Sentinel) {
             if (curr.next == Sentinel) {
                 System.out.println(curr.item);
-            }
-            else {
+            }else {
                 System.out.print(curr.item + " ");
             }
             curr = curr.next;
@@ -115,7 +106,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         return getHelper(Sentinel.next, index);
     }
 
-    private T getHelper(DeNode n, int index){
+    private T getHelper(DeNode n, int index) {
         if (n == Sentinel) {
             return null;
         }else if (index == 0) {
@@ -125,25 +116,25 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         }
     }
 
-    public Iterator<T> iterator(){
+    public Iterator<T> iterator() {
         return new LinkedListDequeIterator();
     }
 
-    private class LinkedListDequeIterator implements Iterator<T>{
+    private class LinkedListDequeIterator implements Iterator<T> {
         private int nextPos;
 
-        public LinkedListDequeIterator(){
+        public LinkedListDequeIterator() {
             nextPos = 0;
         }
 
         @Override
-        public boolean hasNext(){
+        public boolean hasNext() {
             return nextPos < size;
         }
 
         @Override
-        public T next(){
-            if (hasNext()){
+        public T next() {
+            if (hasNext()) {
                 T next = get(nextPos);
                 nextPos += 1;
                 return next;
@@ -153,47 +144,23 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     }
 
     @Override
-    public boolean equals(Object o){
+    public boolean equals(Object o) {
         if (o == this) {
             return true;
-        }
-        else if (o == null) {
-            return false;
-        }
-        else if (this.getClass() != o.getClass()) {
-            return false;
-        }
-
-        LinkedListDeque<T> other = (LinkedListDeque<T>) o;
-        if (other.size() != this.size()) {
+        }else if (o instanceof Deque) {
+            Deque other = (Deque) o;
+            if (other.size() != this.size()) {
                 return false;
-        }
-        for (int i = 0; i < size; i++) {
-                if(this.get(i) !=  other.get(i)){
+            }
+            for (int i = 0; i < size; i++) {
+                if (this.get(i).equals(other.get(i))) {
                     return false;
                 }
+            }
+            return true;
         }
-        return true;
+
+        return false;
      }
 
-
-    public static void main(String[] args) {
-        LinkedListDeque<Integer> a = new LinkedListDeque<>();
-        a.addFirst(1);
-        a.addFirst(2);
-        a.addLast(3);
-        Iterator<Integer> iter = a.iterator();
-        LinkedListDeque<Integer> b = new LinkedListDeque<>();
-        b.addFirst(1);
-        b.addLast(2);
-        b.addLast(3);
-        System.out.println(iter.hasNext());
-        System.out.println(iter.next());
-        System.out.println(iter.next());
-        System.out.println(iter.next());
-        System.out.println(iter.next());
-        a.printDeque();
-        b.printDeque();
-        System.out.println(a.equals(b));
-    }
 }
