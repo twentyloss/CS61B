@@ -1,0 +1,20 @@
+Length: 50
+times: 5000
+class bstmap.ULLMap: 0.16 sec
+class bstmap.BSTMap: 0.01 sec
+Java's Built-in TreeMap: 0.01 sec
+Java's Built-in HashMap: 0.00 sec
+
+Length: 50
+times: 10000
+class bstmap.ULLMap: 0.56 sec
+class bstmap.BSTMap: 0.01 sec
+Java's Built-in TreeMap: 0.01 sec
+Java's Built-in HashMap: 0.01 sec
+
+Length: 50
+times: 100000
+class bstmap.ULLMap: --Stack Overflow -- couldn't add 100000 strings of length 50.
+class bstmap.BSTMap: 0.16 sec
+Java's Built-in TreeMap: 0.13 sec
+Java's Built-in HashMap: 0.08 sec
