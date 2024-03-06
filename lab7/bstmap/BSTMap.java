@@ -5,7 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-public class BSTMap<K extends Comparable, V> implements Map61B<K, V>{
+public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
 
     private MapNode root;
     private int size;
@@ -101,7 +101,7 @@ public class BSTMap<K extends Comparable, V> implements Map61B<K, V>{
         throw new UnsupportedOperationException();
     }
 
-    public Iterator iterator(){
+    public Iterator<K> iterator(){
         throw new UnsupportedOperationException();
     }
 
