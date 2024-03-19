@@ -435,14 +435,13 @@ public class Repository {
         //if it's changed in the same way at current branch, left it as current status
         //conflicts: overwrite the content as conflict format
         boolean conflict = false;
-        LinkedHashSet<String> allFiles = new LinkedHashSet<>();
+        Set<String> allFiles = new HashSet<>();
         allFiles.addAll(splitPointMap.keySet());
         allFiles.addAll(givenBranchMap.keySet());
         allFiles.addAll(commitMap.keySet());
         allFiles.addAll(stageMap.keySet());
 
-        while (!allFiles.isEmpty()) {
-            String currentFile = allFiles.removeFirst();
+        for (String currentFile : allFiles) {
             String splitBlob = splitPointMap.get(currentFile);
             String givenBlob = givenBranchMap.get(currentFile);
             String currBlob = stageMap.containsKey(currentFile)
