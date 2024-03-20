@@ -54,15 +54,14 @@ public class Commit implements Serializable, Comparable<Commit> {
         File hashDir = Repository.getHashDir(sha1Code);
         File c = join(hashDir, sha1Code);
         writeObject(c, this);
-        File head = join(Repository.REFS, Repository.currBranch);
+        File head = join(Repository.REFS, Repository.getCurrBranch());
         writeContents(head, sha1Code);
         updateBranchCommitList();
     }
 
     public void reset() {
-        File head = join(Repository.REFS, Repository.currBranch);
+        File head = join(Repository.REFS, Repository.getCurrBranch());
         writeContents(head, sha1Code);
-        Repository.commitMap = this.getFileMap();
     }
 
     public void log() {
@@ -123,7 +122,7 @@ public class Commit implements Serializable, Comparable<Commit> {
     }
 
     private void updateBranchCommitList() {
-        File commitList = join(Repository.REFS, Repository.currBranch + "CommitList");
+        File commitList = join(Repository.REFS, Repository.getCurrBranch() + "CommitList");
         LinkedList<String> commits = readObject(commitList, LinkedList.class);
         commits.addFirst(sha1Code);
         writeObject(commitList, commits);

@@ -25,20 +25,21 @@ public class Repository {
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     public static final File HEAD = join(GITLET_DIR, "HEAD");
-    public static final File REFS = join (GITLET_DIR, "refs");
+    public static final File REFS = join(GITLET_DIR, "refs");
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
     public static final File STAGING_DIR = join(GITLET_DIR, "staging");
     public static final File COMMIT_MAP = join(STAGING_DIR, "commitMap");
     public static final File STAGING_MAP = join(STAGING_DIR, "stageMap");
     public static final String DEFAULT_BRANCH = "master";
-    public static String currHeadRef = null;
-    public static String currBranch = null;
-    public static Map<String, String> stageMap = null;
-    public static Map<String, String> commitMap = null;
+    private static String currHeadRef = null;
+    private static String currBranch = null;
+    private static Map<String, String> stageMap = null;
+    private static Map<String, String> commitMap = null;
 
-    public static void init(){
+    public static void init() {
         if (GITLET_DIR.exists()) {
-            exitWithMessage("A Gitlet version-control system already exists in the current directory.");
+            exitWithMessage("A Gitlet version-control system already exists"
+                               + " in the current directory.");
         }
         GITLET_DIR.mkdir();
         OBJECTS_DIR.mkdir();
@@ -393,6 +394,7 @@ public class Repository {
             restrictedDelete(join(CWD, filename));
         }
         c.reset();
+        commitMap = resetMap;
         resetStageArea();
     }
 
@@ -417,24 +419,15 @@ public class Repository {
 
         Commit givenBranchCommit = Commit.fromFile(readContentsAsString(join(REFS, branch)));
         Map<String, String> givenBranchMap = givenBranchCommit.getFileMap();
-        List<String> workingFiles = getWorkingFilesWithCheck(givenBranchMap);
 
         // split point check
-        // if common ancestor is the same commit as given branch
-        // exit with message "Given branch is an ancestor of the current branch."
-        //if split point is current branch, checkout given branch
         if (splitPoint.equals(givenBranchCommit)) {
             exitWithMessage("Given branch is an ancestor of the current branch.");
         } else if (splitPoint.getSha1Code().equals(getCurrentCommitId())) {
             checkoutBranch(branch);
             exitWithMessage("Current branch fast-forwarded.");
         }
-        //compare mapping of split point and given branch
-        //get the modified & added & remove list
-        //if it's not changed at current branch, overwrite and auto-stage it
-        //(including added/removed files)
-        //if it's changed in the same way at current branch, left it as current status
-        //conflicts: overwrite the content as conflict format
+
         boolean conflict = false;
         Set<String> allFiles = new HashSet<>();
         allFiles.addAll(splitPointMap.keySet());
@@ -446,26 +439,30 @@ public class Repository {
             String splitBlob = splitPointMap.get(currentFile);
             String givenBlob = givenBranchMap.get(currentFile);
             String currBlob = stageMap.containsKey(currentFile)
-                                ? (stageMap.get(currentFile).isEmpty() ? null : stageMap.get(currentFile))
+                                ? (stageMap.get(currentFile).isEmpty()
+                                        ? null : stageMap.get(currentFile))
                                 : commitMap.get(currentFile);
             if (splitBlob != null) {
-                // if not modified in given branch, or the given branch and curren branch modified at the same way, remain current state
-                if (splitBlob.equals(givenBlob) || givenBlob == currBlob || givenBlob.equals(currBlob)) {
-                    continue;
-                } else if (splitBlob.equals(currBlob)) { //if modified by given branch and not in current branch
+                // if not modified in given branch, or two branches modified at the same way,
+                // remain current state
+                if (splitBlob.equals(givenBlob) || givenBlob == currBlob
+                        || givenBlob.equals(currBlob)) {
+                } else if (splitBlob.equals(currBlob)) {
+                    //if modified by given branch and not in current branch
                     if (givenBlob != null) { // not removed in given branch
                         checkoutFileByCommitId(givenBranchCommit.getSha1Code(), currentFile);
                         add(currentFile);
                     } else { // removed in given branch
                         remove(currentFile);
                     }
-                } else { //when the contents in curr and given branch are all different with the split point, it means conflict
+                } else {
+                    //when the contents in two branches are all different with the split point,
+                    // it means conflict
                     updateConflictFile(currentFile, currBlob, givenBlob);
                     conflict = true;
                 }
             } else { // if the file is not present in split point.
                 if (givenBlob == null || givenBlob.equals(currBlob)) {
-                    continue;
                 } else if (currBlob == null) {
                     checkoutFileByCommitId(givenBranchCommit.getSha1Code(), currentFile);
                     add(currentFile);
@@ -473,17 +470,12 @@ public class Repository {
                     updateConflictFile(currentFile, currBlob, givenBlob);
                     conflict = true;
                 }
-
             }
         }
-
-        //commit with log message "Merged [given branch name] into [current branch name]"
-        //print "Encountered a merge conflict." if conflict exist
         commit("Merged " + branch + " into " + currBranch + ".");
         if (conflict) {
             System.out.println("Encountered a merge conflict.");
         }
-
     }
 
     private static void updateConflictFile(String filename, String currBlob, String givenBlob) {
@@ -627,7 +619,8 @@ public class Repository {
     }
 
     private static Commit getSplitPoint(String b1, String b2) {
-        //splitPoint: 0th element is parent branch name, 1st element is the commit Id of split point
+        // splitPoint: 0th element is parent branch name,
+        // 1st element is the commit id of split point
         Commit splitPoint;
         if (b1.equals("master")) {
             String[] b2Parent = getParentInfo(b2);
@@ -650,7 +643,8 @@ public class Repository {
                 parentListOfb1.addFirst(temp);
                 b1ParentsSet.add(temp[0]);
             }
-            while (parentListOfb2.isEmpty() || b1ParentsSet.contains(parentListOfb2.getFirst()[0])) {
+            while (parentListOfb2.isEmpty()
+                    || b1ParentsSet.contains(parentListOfb2.getFirst()[0])) {
                 parentListOfb2.addFirst(getParentInfo(b2));
             }
             //get the split point of two branches at their common parent branch
@@ -695,5 +689,13 @@ public class Repository {
 
     private static String getCurrentCommitId() {
         return readContentsAsString(new File(currHeadRef));
+    }
+
+    public static String getCurrBranch() {
+        return currBranch;
+    }
+
+    public static Map<String, String> getCommitMap() {
+        return commitMap;
     }
 }
