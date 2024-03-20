@@ -1,7 +1,7 @@
 package gitlet;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
+ *  @author Xinyi Lin
  */
 public class Main {
 
@@ -9,7 +9,6 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args) {
-        // TODO: what if args is empty?
         if (args.length == 0) {
             System.out.println("Please enter a command.");
             System.exit(0);
@@ -25,7 +24,7 @@ public class Main {
                 Repository.add(args[1]);
                 break;
             case "commit":
-                if (args.length != 2) {
+                if (args.length != 2 || args[1].isEmpty()) {
                     System.out.println("Please enter a commit message.");
                 }
                 Repository.commit(args[1]);

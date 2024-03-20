@@ -8,10 +8,9 @@ import static gitlet.Utils.*;
 import static java.util.Locale.ENGLISH;
 
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
  *
- *  @author TODO
+ *
+ *  @author Xinyi Lin
  */
 public class Commit implements Serializable, Comparable<Commit> {
     /**
@@ -55,14 +54,15 @@ public class Commit implements Serializable, Comparable<Commit> {
         File hashDir = Repository.getHashDir(sha1Code);
         File c = join(hashDir, sha1Code);
         writeObject(c, this);
-        File head = join(Repository.refs, Repository.currBranch);
+        File head = join(Repository.REFS, Repository.currBranch);
         writeContents(head, sha1Code);
         updateBranchCommitList();
     }
 
     public void reset() {
-        File head = join(Repository.refs, Repository.currBranch);
+        File head = join(Repository.REFS, Repository.currBranch);
         writeContents(head, sha1Code);
+        Repository.commitMap = this.getFileMap();
     }
 
     public void log() {
@@ -77,7 +77,8 @@ public class Commit implements Serializable, Comparable<Commit> {
         return new Commit(msg, new Date(), parent, "null", map);
     }
 
-    public static Commit generateCommit(String msg, Map<String, String> map, String parent, String secondParent) {
+    public static Commit generateCommit(String msg, Map<String, String> map,
+                                        String parent, String secondParent) {
         return new Commit(msg, new Date(), parent, secondParent, map);
     }
 
@@ -94,14 +95,14 @@ public class Commit implements Serializable, Comparable<Commit> {
 
 
     private void sha1() {
-        sha1Code = Utils.sha1("commit", this.message, this.commitDate.toString()
-                 , this.parent, this.secondParent, fileMap.toString());
+        sha1Code = Utils.sha1("commit", this.message, this.commitDate.toString(),
+                  this.parent, this.secondParent, fileMap.toString());
     }
 
     public String toString() {
-        String date = String.format(ENGLISH, "%ta %tb %td %tH:%tM:%tS %tY %tz"
-                             , commitDate, commitDate, commitDate, commitDate
-                             , commitDate, commitDate, commitDate, commitDate);
+        String date = String.format(ENGLISH, "%ta %tb %td %tH:%tM:%tS %tY %tz",
+                              commitDate, commitDate, commitDate, commitDate,
+                              commitDate, commitDate, commitDate, commitDate);
         String merge = "";
         if (!secondParent.equals("null")) {
             merge = "Merge: " + parent.substring(0, 7) + " " + secondParent.substring(0, 7) + "\n";
@@ -122,7 +123,7 @@ public class Commit implements Serializable, Comparable<Commit> {
     }
 
     private void updateBranchCommitList() {
-        File commitList = join(Repository.refs, Repository.currBranch + "CommitList");
+        File commitList = join(Repository.REFS, Repository.currBranch + "CommitList");
         LinkedList<String> commits = readObject(commitList, LinkedList.class);
         commits.addFirst(sha1Code);
         writeObject(commitList, commits);

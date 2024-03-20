@@ -7,17 +7,13 @@ import java.util.*;
 
 import static gitlet.Utils.*;
 
-// TODO: any imports you need here
-
 /** Represents a gitlet repository.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
  *
- *  @author TODO
+ *
+ *  @author Xinyi Lin
  */
 public class Repository {
     /**
-     * TODO: add instance variables here.
      *
      * List all instance variables of the Repository class here with a useful
      * comment above them describing what that variable represents and how that
@@ -29,12 +25,12 @@ public class Repository {
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     public static final File HEAD = join(GITLET_DIR, "HEAD");
-    public static final File refs = join (GITLET_DIR, "refs");
+    public static final File REFS = join (GITLET_DIR, "refs");
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
     public static final File STAGING_DIR = join(GITLET_DIR, "staging");
     public static final File COMMIT_MAP = join(STAGING_DIR, "commitMap");
     public static final File STAGING_MAP = join(STAGING_DIR, "stageMap");
-    public static final String default_branch = "master";
+    public static final String DEFAULT_BRANCH = "master";
     public static String currHeadRef = null;
     public static String currBranch = null;
     public static Map<String, String> stageMap = null;
@@ -47,15 +43,15 @@ public class Repository {
         GITLET_DIR.mkdir();
         OBJECTS_DIR.mkdir();
         STAGING_DIR.mkdir();
-        refs.mkdir();
+        REFS.mkdir();
         try {
             HEAD.createNewFile();
         } catch (IOException e) {
             exitWithMessage("Fail to create HEAD file.");
         }
-        addBranch(default_branch);
-        currBranch = default_branch;
-        currHeadRef = refs.getAbsolutePath() + "/" + currBranch;
+        addBranch(DEFAULT_BRANCH);
+        currBranch = DEFAULT_BRANCH;
+        currHeadRef = REFS.getAbsolutePath() + "/" + currBranch;
         writeContents(HEAD, currHeadRef);
         Commit initial = Commit.initialCommit();
         initial.commit();
@@ -116,22 +112,24 @@ public class Repository {
 
     public static void remove(String filename) {
         isRepoCheck();
-        File f = new File(filename);
-        if (!f.exists()) {
-            exitWithMessage("File not exist");
-        }
+        File f = join(CWD, filename);
+        boolean checkFlag = false;
 
         if (stageMap.containsKey(filename)) {
             File stageFile = join(STAGING_DIR, stageMap.remove(filename));
-            stageFile.delete();
-            if (commitMap.containsKey(filename)) {
-                restrictedDelete(f);
-                stageMap.put(filename, "");
+            if (stageFile.isFile()) {
+                stageFile.delete();
             }
-            saveStageMap();
-        } else if (commitMap.containsKey(filename)) {
+            checkFlag = true;
+        }
+
+        if (commitMap.containsKey(filename)) {
             restrictedDelete(f);
             stageMap.put(filename, "");
+            checkFlag = true;
+
+        }
+        if (checkFlag) {
             saveStageMap();
         } else {
             exitWithMessage("No reason to remove the file.");
@@ -146,16 +144,16 @@ public class Repository {
     }
 
     public static void globalLog() {
-        List<String> files = plainFilenamesIn(refs);
+        List<String> files = plainFilenamesIn(REFS);
         for (String filename: files) {
             if (!filename.endsWith("CommitList")) {
                 continue;
             }
-            File f = new File(refs, filename);
+            File f = new File(REFS, filename);
             LinkedList<String> commitList = readObject(f, LinkedList.class);
             for (String c : commitList) {
-                if (c.startsWith("Parent Branch")) {
-                    break;
+                if (c.length() != UID_LENGTH) {
+                    continue;
                 }
                 Commit commit = Commit.fromFile(c);
                 System.out.println(commit);
@@ -164,13 +162,13 @@ public class Repository {
     }
 
     public static void find(String message) {
-        List<String> files = plainFilenamesIn(refs);
+        List<String> files = plainFilenamesIn(REFS);
         int findCount = 0;
         for (String filename: files) {
             if (!filename.endsWith("CommitList")) {
                 continue;
             }
-            File f = new File(refs, filename);
+            File f = new File(REFS, filename);
             LinkedList<String> commitList = readObject(f, LinkedList.class);
             for (String c : commitList) {
                 if (c.startsWith("Parent Branch")) {
@@ -189,8 +187,9 @@ public class Repository {
     }
 
     public static void status() {
+        isRepoCheck();
         System.out.println("=== Branches ===");
-        List<String> files = plainFilenamesIn(refs);
+        List<String> files = plainFilenamesIn(REFS);
         for (String filename: files) {
             if (!filename.endsWith("CommitList")) {
                 System.out.println(filename.equals(currBranch) ? "*" + filename : filename);
@@ -267,7 +266,7 @@ public class Repository {
 
     public static void addBranch(String b) {
         isRepoCheck();
-        File branch = join(refs, b);
+        File branch = join(REFS, b);
         if (branch.exists()) {
             System.out.println("A branch with that name already exists.");
         } else {
@@ -283,7 +282,7 @@ public class Repository {
                 writeContents(branch, readContentsAsString(currHead));
                 commits.addFirst(currBranch + "," + readContentsAsString(currHead));
             }
-            File commitList = join(refs, b + "CommitList");
+            File commitList = join(REFS, b + "CommitList");
             try {
                 commitList.createNewFile();
             } catch (IOException e) {
@@ -295,7 +294,7 @@ public class Repository {
 
     public static void checkoutBranch(String b) {
         isRepoCheck();
-        File f = join(refs, b);
+        File f = join(REFS, b);
         if (!f.exists()) {
             exitWithMessage("No such branch exists.");
         } else if (currBranch.equals(b)) {
@@ -306,11 +305,11 @@ public class Repository {
         List<String> workingFiles =  getWorkingFilesWithCheck(headMap);
 
         for (String filename: headMap.keySet()) {
-           File blob = getBlobFile(headMap.get(filename));
-           String content = readContentsAsString(blob);
-           File headFile = join(CWD, filename);
-           writeContents(headFile, content);
-           workingFiles.remove(filename);
+            File blob = getBlobFile(headMap.get(filename));
+            String content = readContentsAsString(blob);
+            File headFile = join(CWD, filename);
+            writeContents(headFile, content);
+            workingFiles.remove(filename);
         }
 
         for (String file: workingFiles) {
@@ -363,7 +362,7 @@ public class Repository {
 
     public static void removeBranch(String b) {
         isRepoCheck();
-        File f = join(refs, b);
+        File f = join(REFS, b);
         if (!f.exists()) {
             exitWithMessage("A branch with that name does not exist.");
         } else if (currBranch.equals(b)) {
@@ -400,7 +399,7 @@ public class Repository {
     public static void merge(String branch) {
         isRepoCheck();
         //branch check
-        File f = join(refs, branch);
+        File f = join(REFS, branch);
         if (!f.exists()) {
             exitWithMessage("A branch with that name does not exist.");
         } else if (currBranch.equals(branch)) {
@@ -416,22 +415,24 @@ public class Repository {
         Commit splitPoint = getSplitPoint(currBranch, branch);
         Map<String, String> splitPointMap = splitPoint.getFileMap();
 
-        Commit givenBranchCommit = Commit.fromFile(readContentsAsString(join(refs, branch)));
+        Commit givenBranchCommit = Commit.fromFile(readContentsAsString(join(REFS, branch)));
         Map<String, String> givenBranchMap = givenBranchCommit.getFileMap();
         List<String> workingFiles = getWorkingFilesWithCheck(givenBranchMap);
 
         // split point check
         // if common ancestor is the same commit as given branch
         // exit with message "Given branch is an ancestor of the current branch."
+        //if split point is current branch, checkout given branch
         if (splitPoint.equals(givenBranchCommit)) {
             exitWithMessage("Given branch is an ancestor of the current branch.");
-        } else if (splitPoint.getSha1Code().equals(getCurrentCommitId())) { //if split point is current branch, checkout given branch
+        } else if (splitPoint.getSha1Code().equals(getCurrentCommitId())) {
             checkoutBranch(branch);
             exitWithMessage("Current branch fast-forwarded.");
         }
         //compare mapping of split point and given branch
         //get the modified & added & remove list
-        //if it's not changed at current branch, overwrite and auto-stage it (including added/removed files)
+        //if it's not changed at current branch, overwrite and auto-stage it
+        //(including added/removed files)
         //if it's changed in the same way at current branch, left it as current status
         //conflicts: overwrite the content as conflict format
         boolean conflict = false;
@@ -502,10 +503,10 @@ public class Repository {
         add(filename);
     }
 
-    private static String getFormattedConflictContent(String Head, String given) {
+    private static String getFormattedConflictContent(String head, String given) {
         StringBuilder s = new StringBuilder();
         s.append("<<<<<<< HEAD\n");
-        s.append(Head);
+        s.append(head);
         s.append("=======\n");
         s.append(given);
         s.append(">>>>>>>\n");
@@ -607,12 +608,14 @@ public class Repository {
                 }
             }
         }
+        exitWithMessage("No commit with that id exists.");
         return null;
     }
 
 
     private static Set<String> getTrackedFileSet() {
-        Set<String> trackedFileSet = commitMap.keySet();
+        Set<String> trackedFileSet = new TreeSet<>();
+        trackedFileSet.addAll(commitMap.keySet());
         for (String file: stageMap.keySet()) {
             if (!stageMap.get(file).isEmpty()) {
                 trackedFileSet.add(file);
@@ -679,7 +682,7 @@ public class Repository {
             System.out.println("Cannot find parent of master branch.");
             return null;
         }
-        File f = join(refs, b + "Commitlist");
+        File f = join(REFS, b + "Commitlist");
         LinkedList<String> commits = readObject(f, LinkedList.class);
         String[] parentInfo = commits.getLast().split(",");
         return parentInfo;
