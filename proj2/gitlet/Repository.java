@@ -77,7 +77,7 @@ public class Repository {
                 File stagedBlob = join(STAGING_DIR, v);
                 stagedBlob.delete();
             } else {
-                return ;
+                return;
             }
         } else if (!blobSha1.equals(stageMap.get(filename))) {
             String oldSha1 = stageMap.put(filename, blobSha1);
@@ -377,15 +377,16 @@ public class Repository {
         Commit c = checkCommitId(commitId);
         Set<String> trackedFileSet = getTrackedFileSet();
         Map<String, String> resetMap = c.getFileMap();
+        getWorkingFilesWithCheck(resetMap);
 
         //write content of blobs in reset commit into CWD.
         for (String filename: resetMap.keySet()) {
             String resetSha1Code = resetMap.get(filename);
-            if (resetSha1Code.equals(commitMap.get(filename))) {
-                continue;
+            if (!resetSha1Code.equals(commitMap.get(filename))) {
+                writeBLobIntoCWD(filename, resetSha1Code);
             }
-            writeBLobIntoCWD(filename, resetSha1Code);
             trackedFileSet.remove(filename);
+
         }
 
         //delete all tracked files that are not tracked by reset commit.
@@ -416,7 +417,6 @@ public class Repository {
         //get the common ancestor first.
         Commit splitPoint = getSplitPoint(currBranch, branch);
         Map<String, String> splitPointMap = splitPoint.getFileMap();
-
         Commit givenBranchCommit = Commit.fromFile(readContentsAsString(join(REFS, branch)));
         Map<String, String> givenBranchMap = givenBranchCommit.getFileMap();
 
@@ -447,6 +447,7 @@ public class Repository {
                 // remain current state
                 if (splitBlob.equals(givenBlob) || givenBlob == currBlob
                         || givenBlob.equals(currBlob)) {
+                    continue;
                 } else if (splitBlob.equals(currBlob)) {
                     //if modified by given branch and not in current branch
                     if (givenBlob != null) { // not removed in given branch
@@ -463,6 +464,7 @@ public class Repository {
                 }
             } else { // if the file is not present in split point.
                 if (givenBlob == null || givenBlob.equals(currBlob)) {
+                    continue;
                 } else if (currBlob == null) {
                     checkoutFileByCommitId(givenBranchCommit.getSha1Code(), currentFile);
                     add(currentFile);
@@ -536,7 +538,7 @@ public class Repository {
     }
 
     public static File getHashDir(String s) {
-        String originHash = Integer.toHexString(s.substring(0, 6).hashCode() % 256);
+        String originHash = Integer.toHexString(s.substring(0, 4).hashCode() % 256);
         String hash = originHash.substring(Math.max(originHash.length() - 2, 0));
         File hashDir = join(OBJECTS_DIR, hash);
         hashDir.mkdir();
@@ -558,9 +560,7 @@ public class Repository {
     }
 
     private static File getBlobFile(String s) {
-        String originHash = Integer.toHexString(s.substring(0, 6).hashCode() % 256);
-        String hash = originHash.substring(Math.max(originHash.length() - 2, 0));
-        return join(OBJECTS_DIR, hash, s);
+        return join(getHashDir(s), s);
     }
 
     private static void resetStageArea() {
@@ -572,31 +572,19 @@ public class Repository {
     }
 
     private static Commit checkCommitId(String commitId) {
-        if (commitId.length() != 40 && commitId.length() != 6) {
+        int idLength = commitId.length();
+        if (idLength > 40 || idLength < 6) {
             exitWithMessage("No commit with that id exists.");
         }
         File hashDir = getHashDir(commitId);
         List<String> objects = plainFilenamesIn(hashDir);
-        if (commitId.length() == 40) {
-            for (String obj: objects) {
-                if (obj.equals(commitId)) {
-                    try {
-                        Commit c = readObject(join(hashDir, obj), Commit.class);
-                        return c;
-                    } catch (IllegalArgumentException e) {
-                        exitWithMessage("No commit with that id exists.");
-                    }
-                }
-            }
-        } else {
-            for (String obj: objects) {
-                if (obj.substring(0, 6).equals(commitId)) {
-                    try {
-                        Commit c = readObject(join(hashDir, obj), Commit.class);
-                        return c;
-                    } catch (IllegalArgumentException e) {
-                        exitWithMessage("No commit with that id exists.");
-                    }
+        for (String obj: objects) {
+            if (obj.substring(0, idLength).equals(commitId)) {
+                try {
+                    Commit c = readObject(join(hashDir, obj), Commit.class);
+                    return c;
+                } catch (IllegalArgumentException e) {
+                    exitWithMessage("No commit with that id exists.");
                 }
             }
         }
