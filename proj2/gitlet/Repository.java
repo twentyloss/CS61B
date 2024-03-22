@@ -447,7 +447,7 @@ public class Repository {
                 // if not modified in given branch, or two branches modified at the same way,
                 // remain current state
                 if (splitBlob.equals(givenBlob) || givenBlob == currBlob
-                        || (givenBlob!= null && givenBlob.equals(currBlob))) {
+                        || (givenBlob != null && givenBlob.equals(currBlob))) {
                     continue;
                 } else if (splitBlob.equals(currBlob)) {
                     //if modified by given branch and not in current branch
