@@ -35,6 +35,7 @@ public class Repository {
     private static String currBranch = null;
     private static Map<String, String> stageMap = null;
     private static Map<String, String> commitMap = null;
+    private static final String commitListSuffix = "CommitList";
 
     public static void init() {
         if (GITLET_DIR.exists()) {
@@ -147,7 +148,7 @@ public class Repository {
     public static void globalLog() {
         List<String> files = plainFilenamesIn(REFS);
         for (String filename: files) {
-            if (!filename.endsWith("CommitList")) {
+            if (!filename.endsWith(commitListSuffix)) {
                 continue;
             }
             File f = new File(REFS, filename);
@@ -166,7 +167,7 @@ public class Repository {
         List<String> files = plainFilenamesIn(REFS);
         int findCount = 0;
         for (String filename: files) {
-            if (!filename.endsWith("CommitList")) {
+            if (!filename.endsWith(commitListSuffix)) {
                 continue;
             }
             File f = new File(REFS, filename);
@@ -192,7 +193,7 @@ public class Repository {
         System.out.println("=== Branches ===");
         List<String> files = plainFilenamesIn(REFS);
         for (String filename: files) {
-            if (!filename.endsWith("CommitList")) {
+            if (!filename.endsWith(commitListSuffix)) {
                 System.out.println(filename.equals(currBranch) ? "*" + filename : filename);
             }
         }
@@ -283,7 +284,7 @@ public class Repository {
                 writeContents(branch, readContentsAsString(currHead));
                 commits.addFirst(currBranch + "," + readContentsAsString(currHead));
             }
-            File commitList = join(REFS, b + "CommitList");
+            File commitList = join(REFS, b + commitListSuffix);
             try {
                 commitList.createNewFile();
             } catch (IOException e) {
@@ -664,7 +665,7 @@ public class Repository {
             System.out.println("Cannot find parent of master branch.");
             return null;
         }
-        File f = join(REFS, b + "Commitlist");
+        File f = join(REFS, b + commitListSuffix);
         LinkedList<String> commits = readObject(f, LinkedList.class);
         String[] parentInfo = commits.getLast().split(",");
         return parentInfo;
