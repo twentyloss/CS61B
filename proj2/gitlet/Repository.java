@@ -415,11 +415,12 @@ public class Repository {
                 exitWithMessage("You have uncommitted changes.");
             }
         }
-        //get the common ancestor first.
+        Commit givenBranchCommit = Commit.fromFile(getBranchHead(branch));
+        Map<String, String> givenBranchMap = givenBranchCommit.getFileMap();
+        getWorkingFilesWithCheck(givenBranchMap);
+        //get common ancester
         Commit splitPoint = getSplitPoint(currBranch, branch);
         Map<String, String> splitPointMap = splitPoint.getFileMap();
-        Commit givenBranchCommit = Commit.fromFile(readContentsAsString(join(REFS, branch)));
-        Map<String, String> givenBranchMap = givenBranchCommit.getFileMap();
 
         // split point check
         if (splitPoint.equals(givenBranchCommit)) {
@@ -553,7 +554,7 @@ public class Repository {
         for (String file: fileList) {
             if (!trackedFileSet.contains(file) && checkoutMap.containsKey(file)) {
                 exitWithMessage("There is an untracked file in the way; "
-                        + "delete, or add and commit it first.");
+                        + "delete it, or add and commit it first.");
             }
         }
         returnList.addAll(fileList);
@@ -611,30 +612,31 @@ public class Repository {
         // splitPoint: 0th element is parent branch name,
         // 1st element is the commit id of split point
         Commit splitPoint;
-        if (b1.equals("master")) {
+        if (b1.equals(DEFAULT_BRANCH)) {
             String[] b2Parent = getParentInfo(b2);
-            while (!b2Parent[0].equals("master")) {
+            while (!b2Parent[0].equals(DEFAULT_BRANCH)) {
                 b2Parent = getParentInfo(b2Parent[0]);
             }
             splitPoint = Commit.fromFile(b2Parent[1]);
-        } else if (b2.equals("master")) {
+        } else if (b2.equals(DEFAULT_BRANCH)) {
             String[] b1Parent = getParentInfo(b1);
-            while (!b1Parent[0].equals("master")) {
+            while (!b1Parent[0].equals(DEFAULT_BRANCH)) {
                 b1Parent = getParentInfo(b1Parent[0]);
             }
             splitPoint = Commit.fromFile(b1Parent[1]);
         } else {
             LinkedList<String[]> parentListOfb1 = new LinkedList<>();
+            parentListOfb1.add(new String[]{b1, getBranchHead(b1)});
             Set<String> b1ParentsSet = new HashSet<>();
             LinkedList<String[]> parentListOfb2 = new LinkedList<>();
-            while (parentListOfb1.isEmpty() || !parentListOfb1.getFirst()[0].equals("master")) {
-                String[] temp = getParentInfo(b1);
+            parentListOfb2.add(new String[]{b2, getBranchHead(b2)});
+            while (!parentListOfb1.getFirst()[0].equals(DEFAULT_BRANCH)) {
+                String[] temp = getParentInfo(parentListOfb1.getFirst()[0]);
                 parentListOfb1.addFirst(temp);
                 b1ParentsSet.add(temp[0]);
             }
-            while (parentListOfb2.isEmpty()
-                    || b1ParentsSet.contains(parentListOfb2.getFirst()[0])) {
-                parentListOfb2.addFirst(getParentInfo(b2));
+            while (!b1ParentsSet.contains(parentListOfb2.getFirst()[0])) {
+                parentListOfb2.addFirst(getParentInfo(parentListOfb2.getFirst()[0]));
             }
             //get the split point of two branches at their common parent branch
             String[] temp1 = parentListOfb2.getFirst();
@@ -661,7 +663,7 @@ public class Repository {
     *  Second element is Split commit id.
     */
     private static String[] getParentInfo(String b) {
-        if (b.equals("master")) {
+        if (b.equals(DEFAULT_BRANCH)) {
             System.out.println("Cannot find parent of master branch.");
             return null;
         }
@@ -686,5 +688,9 @@ public class Repository {
 
     public static Map<String, String> getCommitMap() {
         return commitMap;
+    }
+
+    private static String getBranchHead(String branch) {
+        return readContentsAsString(join(REFS, branch));
     }
 }
