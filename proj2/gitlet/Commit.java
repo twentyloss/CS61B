@@ -139,4 +139,8 @@ public class Commit implements Serializable, Comparable<Commit> {
     public boolean equals(Commit c) {
         return this.sha1Code.equals(c.getSha1Code());
     }
+
+    public String getSecondParent() {
+        return this.secondParent;
+    }
 }

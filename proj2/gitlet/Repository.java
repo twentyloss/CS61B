@@ -402,7 +402,6 @@ public class Repository {
 
     public static void merge(String branch) {
         isRepoCheck();
-        //branch check
         File f = join(REFS, branch);
         if (!f.exists()) {
             exitWithMessage("A branch with that name does not exist.");
@@ -421,7 +420,6 @@ public class Repository {
         //get common ancester
         Commit splitPoint = getSplitPoint(currBranch, branch);
         Map<String, String> splitPointMap = splitPoint.getFileMap();
-
         // split point check
         if (splitPoint.equals(givenBranchCommit)) {
             exitWithMessage("Given branch is an ancestor of the current branch.");
@@ -459,8 +457,6 @@ public class Repository {
                         remove(currentFile);
                     }
                 } else {
-                    //when the contents in two branches are all different with the split point,
-                    // it means conflict
                     updateConflictFile(currentFile, currBlob, givenBlob);
                     conflict = true;
                 }
