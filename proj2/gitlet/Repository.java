@@ -35,7 +35,7 @@ public class Repository {
     private static String currBranch = null;
     private static Map<String, String> stageMap = null;
     private static Map<String, String> commitMap = null;
-    private static final String commitListSuffix = "CommitList";
+    private static final String COMMIT_LIST_SUFFIX = "CommitList";
 
     public static void init() {
         if (GITLET_DIR.exists()) {
@@ -148,7 +148,7 @@ public class Repository {
     public static void globalLog() {
         List<String> files = plainFilenamesIn(REFS);
         for (String filename: files) {
-            if (!filename.endsWith(commitListSuffix)) {
+            if (!filename.endsWith(COMMIT_LIST_SUFFIX)) {
                 continue;
             }
             File f = new File(REFS, filename);
@@ -167,7 +167,7 @@ public class Repository {
         List<String> files = plainFilenamesIn(REFS);
         int findCount = 0;
         for (String filename: files) {
-            if (!filename.endsWith(commitListSuffix)) {
+            if (!filename.endsWith(COMMIT_LIST_SUFFIX)) {
                 continue;
             }
             File f = new File(REFS, filename);
@@ -193,7 +193,7 @@ public class Repository {
         System.out.println("=== Branches ===");
         List<String> files = plainFilenamesIn(REFS);
         for (String filename: files) {
-            if (!filename.endsWith(commitListSuffix)) {
+            if (!filename.endsWith(COMMIT_LIST_SUFFIX)) {
                 System.out.println(filename.equals(currBranch) ? "*" + filename : filename);
             }
         }
@@ -284,7 +284,7 @@ public class Repository {
                 writeContents(branch, readContentsAsString(currHead));
                 commits.addFirst(currBranch + "," + readContentsAsString(currHead));
             }
-            File commitList = join(REFS, b + commitListSuffix);
+            File commitList = join(REFS, b + COMMIT_LIST_SUFFIX);
             try {
                 commitList.createNewFile();
             } catch (IOException e) {
@@ -447,7 +447,7 @@ public class Repository {
                 // if not modified in given branch, or two branches modified at the same way,
                 // remain current state
                 if (splitBlob.equals(givenBlob) || givenBlob == currBlob
-                        || givenBlob.equals(currBlob)) {
+                        || (givenBlob!= null && givenBlob.equals(currBlob))) {
                     continue;
                 } else if (splitBlob.equals(currBlob)) {
                     //if modified by given branch and not in current branch
@@ -665,7 +665,7 @@ public class Repository {
             System.out.println("Cannot find parent of master branch.");
             return null;
         }
-        File f = join(REFS, b + commitListSuffix);
+        File f = join(REFS, b + COMMIT_LIST_SUFFIX);
         LinkedList<String> commits = readObject(f, LinkedList.class);
         String[] parentInfo = commits.getLast().split(",");
         return parentInfo;
